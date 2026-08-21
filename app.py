@@ -21,16 +21,17 @@ def save_logs(logs):
 
 @app.route("/health", methods=["GET"])
 def health():
-    return {"status": "ok", "version": "1.0.2"}, 200
+    return {"status": "ok", "version": "1.0.3"}, 200
 
 
-@app.route("/api/logs", methods=["GET"])
-def get_logs():
+# ✅ NEW ROUTE PATH — /api/v2/logs — NO OLD CACHE!
+@app.route("/api/v2/logs", methods=["GET"])
+def get_logs_v2():
     return jsonify(read_logs())
 
 
-@app.route("/api/logs", methods=["POST"])
-def logs_post():
+@app.route("/api/v2/logs", methods=["POST"])
+def logs_post_v2():
     body = request.get_json(silent=True) or {}
     log_id = request.args.get("id") or body.get("log_id")
     new_status = request.args.get("status") or body.get("status")
@@ -51,8 +52,8 @@ def logs_post():
         return jsonify({"success": True}), 201
 
 
-@app.route("/api/logs/clear-lionsec", methods=["GET", "POST"])
-def clear():
+@app.route("/api/v2/clear", methods=["GET", "POST"])
+def clear_v2():
     save_logs([])
     return jsonify({"cleared": True}), 200
 
