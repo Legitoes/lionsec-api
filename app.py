@@ -24,3 +24,16 @@ def health():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+    
+# ---------------- ADD THIS TO YOUR API ----------------
+@app.route("/api/logs/clear-lionsec", methods=["POST"])
+def clear_logs_lionsec():
+    # THIS CLEARS ALL LOGS — KEEP THIS SECURE!
+    import json
+    try:
+        with open("logs.json", "w") as f:
+            json.dump([], f)  # EMPTY THE FILE
+        return jsonify({"success": True, "message": "ALL LOGS CLEARED"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+# -------------------------------------------------------
