@@ -21,7 +21,7 @@ def save_logs(logs):
 
 @app.route("/health", methods=["GET"])
 def health():
-    return {"v": "1.0.4"}, 200
+    return {"v": "1.0.6"}, 200
 
 
 @app.route("/api/v2/logs", methods=["GET", "POST"])
@@ -29,7 +29,19 @@ def logs_both():
     if request.method == "GET":
         return jsonify(read_logs())
     
-    body = request.get_json(silent=True) or {}
+    # ✅ Try MULTIPLE ways to get JSON — guaranteed to work
+    body = {}
+    if request.is_json:
+        try:
+            body = request.get_json(force=True) or {}
+        except:
+            pass
+    if not body:
+        try:
+            body = json.loads(request.data.decode("utf-8"))
+        except:
+            body = {}
+
     log_id = request.args.get("id") or body.get("log_id")
     new_status = request.args.get("status") or body.get("status")
     logs = read_logs()
@@ -42,6 +54,8 @@ def logs_both():
                 return jsonify({"success": True}), 200
         return jsonify({"error": "Not found"}), 404
     else:
+        if "log_id" not in body:
+            return jsonify({"error": "Missing log_id"}), 400
         if "status" not in body or not body["status"]:
             body["status"] = "In place"
         logs.insert(0, body)
