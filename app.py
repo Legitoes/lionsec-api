@@ -21,7 +21,7 @@ def save_logs(logs):
 
 @app.route("/health", methods=["GET"])
 def health():
-    return {"v": "1.0.6"}, 200
+    return {"v": "1.0.7"}, 200
 
 
 @app.route("/api/v2/logs", methods=["GET", "POST"])
@@ -29,35 +29,36 @@ def logs_both():
     if request.method == "GET":
         return jsonify(read_logs())
     
-    # ✅ Try MULTIPLE ways to get JSON — guaranteed to work
-    body = {}
-    if request.is_json:
-        try:
-            body = request.get_json(force=True) or {}
-        except:
-            pass
-    if not body:
+    # Get JSON body reliably
+    try:
+        body = request.get_json(force=True)
+    except:
         try:
             body = json.loads(request.data.decode("utf-8"))
         except:
             body = {}
 
-    log_id = request.args.get("id") or body.get("log_id")
-    new_status = request.args.get("status") or body.get("status")
-    logs = read_logs()
+    # ✅ ONLY use URL params for UPDATE
+    log_id_url = request.args.get("id")
+    status_url = request.args.get("status")
 
-    if log_id and new_status:
+    # ✅ UPDATE: ONLY if BOTH id AND status are in the URL
+    if log_id_url and status_url:
+        logs = read_logs()
         for log in logs:
-            if str(log.get("log_id","")).strip().upper() == str(log_id).strip().upper():
-                log["status"] = new_status
+            if str(log.get("log_id","")).strip().upper() == str(log_id_url).strip().upper():
+                log["status"] = status_url
                 save_logs(logs)
                 return jsonify({"success": True}), 200
         return jsonify({"error": "Not found"}), 404
+
+    # ✅ CREATE: always reached from bot!
     else:
-        if "log_id" not in body:
+        if not body or "log_id" not in body:
             return jsonify({"error": "Missing log_id"}), 400
         if "status" not in body or not body["status"]:
             body["status"] = "In place"
+        logs = read_logs()
         logs.insert(0, body)
         save_logs(logs)
         return jsonify({"success": True}), 201
