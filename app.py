@@ -19,43 +19,40 @@ def save_logs(logs):
         json.dump(logs, f, indent=2)
 
 
+# ✅ MUST HAVE THIS EXACT ROUTE
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
     return jsonify(read_logs())
 
 
+# ✅ MUST HAVE THIS EXACT ROUTE
 @app.route("/api/logs", methods=["POST"])
 def logs_post():
     body = request.get_json(silent=True) or {}
     log_id = request.args.get("id") or body.get("log_id")
     new_status = request.args.get("status") or body.get("status")
-
     logs = read_logs()
 
-    # UPDATE
     if log_id and new_status:
         for log in logs:
-            if str(log.get("log_id", "")).strip().upper() == str(log_id).strip().upper():
+            if str(log.get("log_id","")).strip().upper() == str(log_id).strip().upper():
                 log["status"] = new_status
                 save_logs(logs)
                 print(f"🔄 UPDATED {log_id} → {new_status}")
                 return jsonify({"success": True}), 200
-        return jsonify({"error": "Log not found"}), 404
-
-    # CREATE
+        return jsonify({"error": "Not found"}), 404
     else:
         if "status" not in body or not body["status"]:
             body["status"] = "In place"
         logs.insert(0, body)
         save_logs(logs)
-        print(f"📝 CREATED Log ID: {body.get('log_id')} | Status: {body.get('status')}")
+        print(f"📝 CREATED: {body.get('log_id')}")
         return jsonify({"success": True}), 201
 
 
 @app.route("/api/logs/clear-lionsec", methods=["GET", "POST"])
 def clear():
     save_logs([])
-    print("🧹 CLEARED ALL LOGS")
     return jsonify({"cleared": True}), 200
 
 
