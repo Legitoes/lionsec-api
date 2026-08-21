@@ -17,8 +17,10 @@ def add_log():
     print(f"📥 Log received: {data}")
     return jsonify({"status": "ok"}), 201
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+# ✅ HEALTH ROUTE — KEEPS YOUR API AWAKE
 @app.route("/health", methods=["GET"])
 def health():
-    return {"status": "awake"}
+    return {"status": "awake"}, 200
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
