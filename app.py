@@ -21,7 +21,7 @@ def save_logs(logs):
 
 @app.route("/health", methods=["GET"])
 def health():
-    return {"ok": True}, 200
+    return {"status": "ok", "version": "1.0.2"}, 200
 
 
 @app.route("/api/logs", methods=["GET"])
