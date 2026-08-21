@@ -19,54 +19,52 @@ def save_logs(logs):
         json.dump(logs, f, indent=2)
 
 
-# ✅ GET ALL LOGS
+# GET all logs
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
     return jsonify(read_logs())
 
 
-# ✅ CREATE NEW LOG OR UPDATE STATUS
+# POST — Create OR Update
 @app.route("/api/logs", methods=["POST"])
-def handle_logs():
-    data = request.get_json() or {}
-    log_id = request.args.get("id") or data.get("log_id")
-    new_status = request.args.get("status") or data.get("status")
-    
+def logs_post():
+    body = request.get_json(silent=True) or {}
+    log_id = request.args.get("id") or body.get("log_id")
+    new_status = request.args.get("status") or body.get("status")
+
     logs = read_logs()
 
-    # 🔄 UPDATE existing log
+    # UPDATE mode
     if log_id and new_status:
         for log in logs:
             if log.get("log_id", "").upper() == log_id.upper():
                 log["status"] = new_status
                 save_logs(logs)
-                print(f"✅ UPDATED {log_id} → {new_status}")
-                return jsonify({"success": True}), 200
-        return jsonify({"error": "Log not found"}), 404
+                print(f"🔄 UPDATE {log_id} → {new_status}")
+                return jsonify({"ok": True, "mode": "updated"}), 200
+        return jsonify({"error": "not found"}), 404
 
-    # 🆕 CREATE new log
+    # CREATE mode
     else:
-        if "status" not in data or data["status"] == "":
-            data["status"] = "In place"  # ✅ FORCE DEFAULT STATUS
-        
-        logs.insert(0, data)
+        if "status" not in body or not body["status"]:
+            body["status"] = "In place"
+        logs.insert(0, body)
         save_logs(logs)
-        print(f"✅ NEW LOG created: {data.get('log_id')} | Status: {data.get('status')}")
-        return jsonify({"success": True}), 201
+        print(f"📝 CREATE {body.get('log_id')} | {body.get('status')}")
+        return jsonify({"ok": True, "mode": "created"}), 201
 
 
-# 🧹 CLEAR ALL LOGS
+# CLEAR
 @app.route("/api/logs/clear-lionsec", methods=["POST"])
-def clear_logs():
+def clear():
     save_logs([])
-    print("⚠️ ALL LOGS CLEARED")
-    return jsonify({"success": True}), 200
+    print("🧹 CLEARED")
+    return jsonify({"cleared": True}), 200
 
 
-# 💤 KEEP ALIVE
 @app.route("/health", methods=["GET"])
 def health():
-    return {"status": "ok"}, 200
+    return {"ok": True}, 200
 
 
 if __name__ == "__main__":
