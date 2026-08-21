@@ -21,17 +21,15 @@ def save_logs(logs):
 
 @app.route("/health", methods=["GET"])
 def health():
-    return {"status": "ok", "version": "1.0.3"}, 200
+    return {"v": "1.0.4"}, 200
 
 
-# ✅ NEW ROUTE PATH — /api/v2/logs — NO OLD CACHE!
-@app.route("/api/v2/logs", methods=["GET"])
-def get_logs_v2():
-    return jsonify(read_logs())
-
-
-@app.route("/api/v2/logs", methods=["POST"])
-def logs_post_v2():
+@app.route("/api/v2/logs", methods=["GET", "POST"])
+def logs_both():
+    if request.method == "GET":
+        return jsonify(read_logs())
+    
+    # POST — CREATE OR UPDATE
     body = request.get_json(silent=True) or {}
     log_id = request.args.get("id") or body.get("log_id")
     new_status = request.args.get("status") or body.get("status")
@@ -53,7 +51,7 @@ def logs_post_v2():
 
 
 @app.route("/api/v2/clear", methods=["GET", "POST"])
-def clear_v2():
+def clear():
     save_logs([])
     return jsonify({"cleared": True}), 200
 
