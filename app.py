@@ -19,13 +19,16 @@ def save_logs(logs):
         json.dump(logs, f, indent=2)
 
 
-# ✅ MUST HAVE THIS EXACT ROUTE
+@app.route("/health", methods=["GET"])
+def health():
+    return {"ok": True}, 200
+
+
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
     return jsonify(read_logs())
 
 
-# ✅ MUST HAVE THIS EXACT ROUTE
 @app.route("/api/logs", methods=["POST"])
 def logs_post():
     body = request.get_json(silent=True) or {}
@@ -38,7 +41,6 @@ def logs_post():
             if str(log.get("log_id","")).strip().upper() == str(log_id).strip().upper():
                 log["status"] = new_status
                 save_logs(logs)
-                print(f"🔄 UPDATED {log_id} → {new_status}")
                 return jsonify({"success": True}), 200
         return jsonify({"error": "Not found"}), 404
     else:
@@ -46,7 +48,6 @@ def logs_post():
             body["status"] = "In place"
         logs.insert(0, body)
         save_logs(logs)
-        print(f"📝 CREATED: {body.get('log_id')}")
         return jsonify({"success": True}), 201
 
 
@@ -54,11 +55,6 @@ def logs_post():
 def clear():
     save_logs([])
     return jsonify({"cleared": True}), 200
-
-
-@app.route("/health", methods=["GET"])
-def health():
-    return {"ok": True}, 200
 
 
 if __name__ == "__main__":
