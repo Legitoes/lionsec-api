@@ -29,7 +29,6 @@ def logs_both():
     if request.method == "GET":
         return jsonify(read_logs())
     
-    # POST — CREATE OR UPDATE
     body = request.get_json(silent=True) or {}
     log_id = request.args.get("id") or body.get("log_id")
     new_status = request.args.get("status") or body.get("status")
