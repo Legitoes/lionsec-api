@@ -19,13 +19,13 @@ def save_logs(logs):
         json.dump(logs, f, indent=2)
 
 
-# GET all logs
+# GET ALL LOGS
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
     return jsonify(read_logs())
 
 
-# POST — Create OR Update
+# POST — CREATE NEW LOG OR UPDATE STATUS
 @app.route("/api/logs", methods=["POST"])
 def logs_post():
     body = request.get_json(silent=True) or {}
@@ -34,7 +34,7 @@ def logs_post():
 
     logs = read_logs()
 
-    # UPDATE mode
+    # 🔄 UPDATE existing log
     if log_id and new_status:
         for log in logs:
             if log.get("log_id", "").upper() == log_id.upper():
@@ -42,9 +42,9 @@ def logs_post():
                 save_logs(logs)
                 print(f"🔄 UPDATE {log_id} → {new_status}")
                 return jsonify({"ok": True, "mode": "updated"}), 200
-        return jsonify({"error": "not found"}), 404
+        return jsonify({"error": "Log not found"}), 404
 
-    # CREATE mode
+    # 🆕 CREATE new log
     else:
         if "status" not in body or not body["status"]:
             body["status"] = "In place"
@@ -54,14 +54,15 @@ def logs_post():
         return jsonify({"ok": True, "mode": "created"}), 201
 
 
-# CLEAR
-@app.route("/api/logs/clear-lionsec", methods=["POST"])
+# 🧹 CLEAR ALL LOGS — works from browser AND bot
+@app.route("/api/logs/clear-lionsec", methods=["GET", "POST"])
 def clear():
     save_logs([])
-    print("🧹 CLEARED")
-    return jsonify({"cleared": True}), 200
+    print("🧹 ALL LOGS CLEARED")
+    return jsonify({"cleared": True, "message": "ALL LOGS CLEARED"}), 200
 
 
+# 💤 HEALTH CHECK
 @app.route("/health", methods=["GET"])
 def health():
     return {"ok": True}, 200
