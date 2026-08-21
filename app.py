@@ -19,3 +19,6 @@ def add_log():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+@app.route("/health", methods=["GET"])
+def health():
+    return {"status": "awake"}
