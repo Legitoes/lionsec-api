@@ -29,7 +29,6 @@ def logs_both():
     if request.method == "GET":
         return jsonify(read_logs())
     
-    # Get JSON body reliably
     try:
         body = request.get_json(force=True)
     except:
@@ -38,11 +37,10 @@ def logs_both():
         except:
             body = {}
 
-    # ✅ ONLY use URL params for UPDATE
+    # ✅ UPDATE = ONLY from URL params
     log_id_url = request.args.get("id")
     status_url = request.args.get("status")
 
-    # ✅ UPDATE: ONLY if BOTH id AND status are in the URL
     if log_id_url and status_url:
         logs = read_logs()
         for log in logs:
@@ -52,7 +50,7 @@ def logs_both():
                 return jsonify({"success": True}), 200
         return jsonify({"error": "Not found"}), 404
 
-    # ✅ CREATE: always reached from bot!
+    # ✅ CREATE = EVERYTHING ELSE (bot posts here!)
     else:
         if not body or "log_id" not in body:
             return jsonify({"error": "Missing log_id"}), 400
@@ -68,7 +66,5 @@ def logs_both():
 def clear():
     save_logs([])
     return jsonify({"cleared": True}), 200
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
